@@ -21,13 +21,15 @@ EXPIRATION_DELTA = getattr(settings, 'CHUNKED_UPLOAD_EXPIRATION_DELTA',
                            DEFAULT_EXPIRATION_DELTA)
 
 # Path where uploading files will be stored until completion
-DEFAULT_UPLOAD_PATH = 'chunked_uploads/%Y/%m/%d'
+DEFAULT_UPLOAD_PATH = 'chunked_uploads'
 UPLOAD_PATH = getattr(settings, 'CHUNKED_UPLOAD_PATH', DEFAULT_UPLOAD_PATH)
 
 
 # upload_to function to be used in the FileField
 def default_upload_to(instance, filename):
-    filename = os.path.join(UPLOAD_PATH, instance.upload_id + '.part')
+    ext = os.path.splitext(instance.filename)[1]
+    filename = os.path.join(UPLOAD_PATH, instance.user.username,
+                            '%Y/%m/%d', instance.upload_id + ext)
     return time.strftime(filename)
 
 
