@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from .settings import MAX_BYTES
 from .models import ChunkedUpload
-from .response import Response
+from .response import Response, HttpResponse
 from .constants import http_status, COMPLETE
 from .exceptions import ChunkedUploadError
 
@@ -289,3 +289,25 @@ class ChunkedUploadCompleteView(ChunkedUploadBaseView):
 
         return Response(self.get_response_data(chunked_upload, request),
                         status=http_status.HTTP_200_OK)
+
+
+class ChunkedDeleteView(ChunkedUploadBaseView):
+    """
+    Delete and stop ChunkedUpload
+    """
+
+    # I wouldn't recommend to turn off the md5 check, unless is really
+    # impacting your performance. Proceed at your own risk.
+
+    def _post(self, request, *args, **kwargs):
+        upload_id = request.POST.get('upload_id')
+
+        # try except logic
+        try:
+            chunked_upload = self.model.objects.get(upload_id=upload_id)
+        except self.model.DoesNotExist:
+            return Response(False, status=404)
+
+        chunked_upload.delete()
+
+        return Response(True, status=http_status.HTTP_200_OK)
